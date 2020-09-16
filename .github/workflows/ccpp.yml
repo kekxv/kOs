@@ -1,0 +1,47 @@
+name: kOs CI
+
+on:
+  push:
+    branches: [ master,dev ]
+  pull_request:
+    branches: [ master,dev ]
+
+jobs:
+  kOs-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Cache gcc-arm-none-eabi
+        uses: actions/cache@v2
+        id: cache-gcc-arm-none-eabi
+        with:
+          path: "~/GCC_ARM_NONE_EABI"
+          key: ${{secrets.GCC_ARM_NONE_EABI_VERSION}}
+      - name: Install gcc-arm-none-eabi
+        env:
+          CACHE_HIT: ${{steps.cache-GCC_ARM_NONE_EABI.outputs.cache-hit}}
+          GCC_ARM_NONE_EABI_VERSION: ${{secrets.GCC_ARM_NONE_EABI_VERSION}}
+        run: |
+          if [[ "$CACHE_HIT" == 'true' ]]; then
+            sudo cp --verbose --force --recursive ~/GCC_ARM_NONE_EABI/* /
+          else
+            sudo apt-get install --yes gcc-arm-none-eabi="$GCC_ARM_NONE_EABI_VERSION"
+            mkdir -p ~/GCC_ARM_NONE_EABI
+            sudo dpkg -L gcc-arm-none-eabi | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/GCC_ARM_NONE_EABI
+          fi
+#      - name: install_build-essential
+#        run: sudo apt update && sudo apt-get install -y gcc-arm-none-eabi
+      - name: configure
+        run: mkdir build-ubuntu && cd build-ubuntu && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
+      - name: build
+        run: cmake --build build-ubuntu
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: kOs-stm32-f10x
+          path: |
+            build-ubuntu/kOs.bin
+            build-ubuntu/kOs.hex
