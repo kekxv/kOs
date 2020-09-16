@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      - name: Cache gcc-arm-none-eabi
+      - name: Cache GCC_ARM_NONE_EABI
         uses: actions/cache@v2
         id: cache-gcc-arm-none-eabi
         with:
