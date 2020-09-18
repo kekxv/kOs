@@ -22,6 +22,21 @@ extern "C" {
 #define __Util_STDPERIPH_VERSION_SUB2 1
 #endif
 
+#ifdef HAL_SPI_MODULE_ENABLED
+
+#ifndef UtilSpiSendWait
+#define UtilSpiSendWait(data, dataLen) UtilSpiSend(data, dataLen, 0xffff)
+#endif // UtilSpiSendWait
+#ifndef UtilSpiReadWait
+#define UtilSpiReadWait(data, dataLen) UtilSpiRead(data, dataLen, 0xffff)
+#endif // UtilSpiReadWait
+
+HAL_StatusTypeDef UtilSpiSend(uint8_t *data, uint16_t dataLen, uint32_t timeout);
+
+HAL_StatusTypeDef UtilSpiRead(uint8_t *data, uint16_t dataLen, uint32_t timeout);
+
+#endif //HAL_SPI_MODULE_ENABLED
+
 #ifdef HAL_UART_MODULE_ENABLED
 
 void UtilClearRead();
@@ -71,6 +86,8 @@ HAL_StatusTypeDef UtilUartSend(uint8_t data[], uint16_t len);
 HAL_StatusTypeDef UtilUartSendStr(char data[]);
 
 #endif
+
+
 #ifdef HAL_PCD_MODULE_ENABLED
 #include <usbd_ioreq.h>
 /**
@@ -93,8 +110,13 @@ USBD_StatusTypeDef UtilUsbSendStr(char data[]);
 #ifdef HAL_GPIO_MODULE_ENABLED
 
 #ifndef UtilGpioRead
-#define UtilGpioRead(GpioIndex, pIndex) UtilGpio(GpioIndex,pIndex,-1)
+#define UtilGpioRead(GpioIndex, pIndex) UtilGpio(GpioIndex, pIndex, -1)
 #endif
+
+typedef enum {
+    GPIO_PIN_LOW = 0, //低电平
+    GPIO_PIN_HIGH //高电平
+}GPIO_PIN_STATE;
 
 int16_t UtilGpio(char GpioIndex, uint8_t pIndex, int8_t PinState);
 
@@ -137,7 +159,7 @@ const char *UtilLowerChar(char *ch);
 
 
 #ifndef UtilTrimSpace
-#define UtilTrimSpace(GpioIndex) UtilTrim(GpioIndex,' ')
+#define UtilTrimSpace(GpioIndex) UtilTrim(GpioIndex, ' ')
 #endif
 
 /**

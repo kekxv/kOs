@@ -5,10 +5,10 @@
 #ifndef KOS_TERMINAL_H
 #define KOS_TERMINAL_H
 
-#include "main.h"
-#include "util.h"
 #include "lfs.h"
 #include "lfs_util.h"
+#include "main.h"
+#include "util.h"
 
 
 #ifndef ENABLE_SYSTEM_LOGIN
@@ -40,25 +40,30 @@
 #define TERMINAL_COMMAND_MAX_LENGTH 126
 #endif
 
+// Tips 开启 SSD 输出
+// #ifndef ENABLE_SSD1306_SPI
+// #define ENABLE_SSD1306_SPI
+// #endif
+
 #ifndef TERMINAL_VT_DEFIND
 #define TERMINAL_VT_DEFIND
-#define    TERMINAL_DEFFONT             "\033[0m"           /* 设置默认字体 */
-#define    TERMINAL_BOLDFONT            "\033[1m"           /* 设置blod字体 */
-#define    TERMINAL_UNDERLINEFONT       "\033[4m"           /* 设置下划线字体 */
-#define    TERMINAL_CLEARSCREEN         "\033[2J"           /* 清除屏幕 */
-#define    TERMINAL_CURSORHOME          "\033[H"            /* 将光标还原到原点 */
-#define    TERMINAL_SAVECURSOR          "\033[s"            /* 保存光标位置 */
-#define    TERMINAL_RESTORECURSOR       "\033[u"            /* 将光标还原到保存位置 */
-#define    TERMINAL_SINGLEWIDTH         "\033#5"            /* 普通、单宽字符 */
-#define    TERMINAL_DOUBLEWIDTH         "\033#6"            /* 创建双宽度字符 */
+#define TERMINAL_DEFFONT "\033[0m"       /* 设置默认字体 */
+#define TERMINAL_BOLDFONT "\033[1m"      /* 设置blod字体 */
+#define TERMINAL_UNDERLINEFONT "\033[4m" /* 设置下划线字体 */
+#define TERMINAL_CLEARSCREEN "\033[2J"   /* 清除屏幕 */
+#define TERMINAL_CURSORHOME "\033[H"     /* 将光标还原到原点 */
+#define TERMINAL_SAVECURSOR "\033[s"     /* 保存光标位置 */
+#define TERMINAL_RESTORECURSOR "\033[u"  /* 将光标还原到保存位置 */
+#define TERMINAL_SINGLEWIDTH "\033#5"    /* 普通、单宽字符 */
+#define TERMINAL_DOUBLEWIDTH "\033#6"    /* 创建双宽度字符 */
 
-#define    TERMINAL_FREEZETOP           "\033[2;25r"        /* 冻结顶部线 */
-#define    TERMINAL_FREEZEBOTTOM        "\033[1;24r"        /* 冻结底线 */
-#define    TERMINAL_UNFREEZE_TB         "\033[r"            /* 解冻顶行和底线 */
+#define TERMINAL_FREEZETOP "\033[2;25r"    /* 冻结顶部线 */
+#define TERMINAL_FREEZEBOTTOM "\033[1;24r" /* 冻结底线 */
+#define TERMINAL_UNFREEZE_TB "\033[r"      /* 解冻顶行和底线 */
 
-#define    TERMINAL_BLINKTEXT           "\033[5m"           /* 闪烁文本 */
-#define    TERMINAL_REVERSEMODE         "\033[7m"           /* 将终端设置为反向模式 */
-#define    TERMINAL_LIGHTREVERSEMODE    "\033[1,7m"         /* 将终端设置为灯光反转模式 */
+#define TERMINAL_BLINKTEXT "\033[5m"          /* 闪烁文本 */
+#define TERMINAL_REVERSEMODE "\033[7m"        /* 将终端设置为反向模式 */
+#define TERMINAL_LIGHTREVERSEMODE "\033[1,7m" /* 将终端设置为灯光反转模式 */
 #endif
 
 #ifndef Terminal_ForeColor
@@ -77,7 +82,7 @@
 /**
  * 清理画面
  */
-#define Terminal_Clear()  Terminal_Printf(TERMINAL_CLEARSCREEN TERMINAL_CURSORHOME)
+#define Terminal_Clear() Terminal_Printf(TERMINAL_CLEARSCREEN TERMINAL_CURSORHOME)
 #endif
 
 typedef enum {

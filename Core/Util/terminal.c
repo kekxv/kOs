@@ -2,13 +2,14 @@
 // Created by caesar kekxv on 2020/9/14.
 //
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include "util.h"
-#include "string.h"
-#include "main.h"
 #include "terminal.h"
+#include "OLED.h"
+#include "main.h"
+#include "string.h"
 #include "terminal_command.h"
+#include "util.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
 TerminalUserInfo terminalUserInfo = {};
 
@@ -279,6 +280,10 @@ void Terminal_init(Terminal_getc getc_cb, Terminal_putc putc_cb) {
         return;
     }
 
+#ifdef ENABLE_SSD1306_SPI
+    LCD_Init();
+    LCD_Print(0, 0 * 16, "kOs.kekxv.com", TYPE16X16, TYPE8X16);
+#endif
     Terminal_offset = 0;
     memset(Terminal_command, 0x00, 126);
     Terminal_Clear();
@@ -295,11 +300,18 @@ void Terminal_init(Terminal_getc getc_cb, Terminal_putc putc_cb) {
     Terminal_Printf("starting Lfs file system.\n");
     Terminal_Lfs_Init();
     Terminal_Printf("Lfs file system finish .\n");
+#ifdef ENABLE_SSD1306_SPI
+    LCD_Print(0, 1 * 16, "Lfs Finish", TYPE16X16, TYPE8X16);
+#endif
 
     Terminal_ForeColor(enmCFC_Cyan);
     Terminal_Printf(TERMINAL_BOLDFONT "kOs finish " TERMINAL_DEFFONT " \n");
     Terminal_ResetColor();
     Terminal_Printf("Starting Terminal ... \n\n");
+#ifdef ENABLE_SSD1306_SPI
+    LCD_Print(0, 2 * 16, "Terminal Finish", TYPE16X16, TYPE8X16);
+    LCD_Print(0, 3 * 16, "kOs boot Finish", TYPE16X16, TYPE8X16);
+#endif
 }
 
 void Terminal_Free() {

@@ -7,6 +7,21 @@
 #include "string.h"
 #include "main.h"
 
+
+#ifdef HAL_SPI_MODULE_ENABLED
+extern SPI_HandleTypeDef hspi1;
+
+HAL_StatusTypeDef UtilSpiSend(uint8_t *data, uint16_t dataLen, uint32_t timeout) {
+    return HAL_SPI_Transmit(&hspi1, data, dataLen, timeout);
+}
+
+HAL_StatusTypeDef UtilSpiRead(uint8_t *data, uint16_t dataLen, uint32_t timeout) {
+    return HAL_SPI_Receive(&hspi1, data, dataLen, timeout);
+}
+
+
+#endif //HAL_SPI_MODULE_ENABLED
+
 #ifdef HAL_UART_MODULE_ENABLED
 
 #include "stdio.h"
