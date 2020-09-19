@@ -3,8 +3,8 @@
 //
 
 #include "terminal.h"
-#include "OLED.h"
 #include "main.h"
+#include "ssd1306.h"
 #include "string.h"
 #include "terminal_command.h"
 #include "util.h"
@@ -26,10 +26,10 @@ struct lfs_info Terminal_lfs_info;
 const struct lfs_config Terminal_cfg = {
         .context = NULL,
         // block device operations
-        .read  = Terminal_provided_block_device_read,
-        .prog  = Terminal_provided_block_device_prog,
+        .read = Terminal_provided_block_device_read,
+        .prog = Terminal_provided_block_device_prog,
         .erase = Terminal_provided_block_device_erase,
-        .sync  = Terminal_provided_block_device_sync,
+        .sync = Terminal_provided_block_device_sync,
 
         // block device configuration
         .read_size = 16,
@@ -39,13 +39,12 @@ const struct lfs_config Terminal_cfg = {
         .block_cycles = 100,
         .cache_size = 16,
         .lookahead_size = 16,
-        .read_buffer=NULL,
-        .prog_buffer=NULL,
-        .lookahead_buffer=NULL,
-        .name_max=0,
-        .file_max=0,
-        .attr_max=0
-};
+        .read_buffer = NULL,
+        .prog_buffer = NULL,
+        .lookahead_buffer = NULL,
+        .name_max = 0,
+        .file_max = 0,
+        .attr_max = 0};
 
 void Terminal_Lfs_Init() {
     // mount the filesystem
@@ -156,8 +155,7 @@ void Terminal_ap_getparents(char *name) {
 
     l = w = first_dot = next - name;
     while (name[l] != '\0') {
-        if (name[l] == '.' && IS_SLASH(name[l + 1])
-            && (l == 0 || IS_SLASH(name[l - 1])))
+        if (name[l] == '.' && IS_SLASH(name[l + 1]) && (l == 0 || IS_SLASH(name[l - 1])))
             l += 2;
         else
             name[w++] = name[l++];
@@ -174,8 +172,7 @@ void Terminal_ap_getparents(char *name) {
     l = first_dot;
 
     while (name[l] != '\0') {
-        if (name[l] == '.' && name[l + 1] == '.' && IS_SLASH(name[l + 2])
-            && (l == 0 || IS_SLASH(name[l - 1]))) {
+        if (name[l] == '.' && name[l + 1] == '.' && IS_SLASH(name[l + 2]) && (l == 0 || IS_SLASH(name[l - 1]))) {
             int m = l + 3, n;
 
             l = l - 2;
@@ -195,8 +192,7 @@ void Terminal_ap_getparents(char *name) {
     /* d) remove trailing xx/.. segment. */
     if (l == 2 && name[0] == '.' && name[1] == '.')
         name[0] = '\0';
-    else if (l > 2 && name[l - 1] == '.' && name[l - 2] == '.'
-             && IS_SLASH(name[l - 3])) {
+    else if (l > 2 && name[l - 1] == '.' && name[l - 2] == '.' && IS_SLASH(name[l - 3])) {
         l = l - 4;
         if (l >= 0) {
             while (l >= 0 && !IS_SLASH(name[l]))
@@ -280,9 +276,17 @@ void Terminal_init(Terminal_getc getc_cb, Terminal_putc putc_cb) {
         return;
     }
 
+#ifdef ENABLE_OLED_SSD1306_SOFT_SPI
+    ssd1306_Init();
+    ssd1306_WriteString(0, 0 * 16, "kOs.kekxv.com", TYPE16X16, TYPE8X16);
+#endif
 #ifdef ENABLE_SSD1306_SPI
-    LCD_Init();
-    LCD_Print(0, 0 * 16, "kOs.kekxv.com", TYPE16X16, TYPE8X16);
+    ssd1306_Init();
+    ssd1306_Init();
+    ssd1306_Fill(Black);
+    ssd1306_SetCursor(0, 0);
+    ssd1306_WriteString("kOs.kekxv.com", Font_6x8, White);
+    ssd1306_UpdateScreen();
 #endif
     Terminal_offset = 0;
     memset(Terminal_command, 0x00, 126);
@@ -300,17 +304,37 @@ void Terminal_init(Terminal_getc getc_cb, Terminal_putc putc_cb) {
     Terminal_Printf("starting Lfs file system.\n");
     Terminal_Lfs_Init();
     Terminal_Printf("Lfs file system finish .\n");
-#ifdef ENABLE_SSD1306_SPI
+#ifdef ENABLE_OLED_SSD1306_SOFT_SPI
     LCD_Print(0, 1 * 16, "Lfs Finish", TYPE16X16, TYPE8X16);
+#endif
+#ifdef ENABLE_SSD1306_SPI
+    ssd1306_SetCursor(0, 1 * 8);
+    ssd1306_WriteString("Lfs & Terminal Finish", Font_6x8, White);
+    ssd1306_UpdateScreen();
 #endif
 
     Terminal_ForeColor(enmCFC_Cyan);
     Terminal_Printf(TERMINAL_BOLDFONT "kOs finish " TERMINAL_DEFFONT " \n");
     Terminal_ResetColor();
     Terminal_Printf("Starting Terminal ... \n\n");
-#ifdef ENABLE_SSD1306_SPI
+#ifdef ENABLE_OLED_SSD1306_SOFT_SPI
     LCD_Print(0, 2 * 16, "Terminal Finish", TYPE16X16, TYPE8X16);
     LCD_Print(0, 3 * 16, "kOs boot Finish", TYPE16X16, TYPE8X16);
+#endif
+#ifdef ENABLE_SSD1306_SPI
+    ssd1306_SetCursor(0, 2 * 8);
+    ssd1306_WriteString("Welcome to", Font_6x8, White);
+    ssd1306_SetCursor(0, 3 * 8);
+    ssd1306_WriteString("   _     ___", Font_6x8, White);
+    ssd1306_SetCursor(0, 4 * 8);
+    ssd1306_WriteString("  | | __/ _ \\ ___", Font_6x8, White);
+    ssd1306_SetCursor(0, 5 * 8);
+    ssd1306_WriteString("  | |/ / | | / __|", Font_6x8, White);
+    ssd1306_SetCursor(0, 6 * 8);
+    ssd1306_WriteString("  |   <| |_| \\__ \\", Font_6x8, White);
+    ssd1306_SetCursor(0, 7 * 8);
+    ssd1306_WriteString("  |_|\\_\\\\___/|___/", Font_6x8, White);
+    ssd1306_UpdateScreen();
 #endif
 }
 
@@ -432,7 +456,7 @@ int Terminal_ReadCommand() {
             break;
         }
         switch (ch) {
-            case 0x1B://ESC
+            case 0x1B: //ESC
                 ch = Terminal_getc_cb();
                 // VT 模式 [ 开启
                 if (ch != '[') {
@@ -455,19 +479,19 @@ int Terminal_ReadCommand() {
                 }
                 continue;
                 break;
-            case 0x08://删除
+            case 0x08: //删除
             case 0x06:
             case 0x07:
             case 0x7E:
             case 0x7F:
-                if (Terminal_offset <= 0)break;
+                if (Terminal_offset <= 0) break;
                 Terminal_offset--;
                 //首先左移一下游标,然后记录下位置
                 Terminal_putc_cb(0x08);
                 Terminal_Printf(TERMINAL_SAVECURSOR);
                 //在内存里输出光标后的内容,此时会覆盖光标里的字,相当于原地删除了
                 Terminal_Printf(&Terminal_command[Terminal_offset + 1]);
-                Terminal_Printf(" " TERMINAL_RESTORECURSOR);//恢复光标位置
+                Terminal_Printf(" " TERMINAL_RESTORECURSOR); //恢复光标位置
                 //在内存里把光标后面的内容全部往前移一格(包括末尾的\0)
                 for (uint8_t i = Terminal_offset; i < (uint8_t) strlen(Terminal_command); i++) {
                     Terminal_command[i] = Terminal_command[i + 1];
@@ -486,10 +510,9 @@ int Terminal_ReadCommand() {
                 Terminal_Printf(TERMINAL_SAVECURSOR);
                 //在内存里输出光标后的内容,此时会覆盖光标里的字,相当于原地删除了
                 Terminal_Printf(&Terminal_command[Terminal_offset + 1]);
-                Terminal_Printf(" " TERMINAL_RESTORECURSOR);//恢复光标位置
+                Terminal_Printf(" " TERMINAL_RESTORECURSOR); //恢复光标位置
                 Terminal_command[Terminal_offset++] = ch;
-            }
-                break;
+            } break;
         }
     } while (Terminal_offset < TERMINAL_COMMAND_MAX_LENGTH);
     if (Terminal_offset > 0) {
@@ -500,32 +523,32 @@ int Terminal_ReadCommand() {
 
 void Terminal_VTMode(const uint8_t *args, uint8_t offset) {
     switch (args[offset - 1]) {
-        case 'D'://光标左移
+        case 'D': //光标左移
             if (Terminal_offset > 0) {
                 Terminal_offset--;
                 Terminal_putc_cb(0x08);
             }
             break;
-        case 'C'://光标右移
+        case 'C': //光标右移
             if (Terminal_command[Terminal_offset] != '\0') {
                 Terminal_offset++;
                 Terminal_Printf("\033[C");
             }
             break;
 
-        case '~'://按键信息
+        case '~': //按键信息
             if (offset == 2) {
                 char Terminal_offsetStr[6] = {};
                 itoa(Terminal_offset, Terminal_offsetStr, 10);
                 switch (args[0]) {
-                    case 1://Home
+                    case 1: //Home
                         Terminal_Printf("\033[");
                         Terminal_Printf(Terminal_offsetStr);
                         Terminal_putc_cb('D');
                         Terminal_offset = 0;
                         break;
-                    case 4://End
-                        if (Terminal_command[Terminal_offset] == 0)break;
+                    case 4: //End
+                        if (Terminal_command[Terminal_offset] == 0) break;
                         Terminal_Printf("\033[");
                         memset(Terminal_offsetStr, 0x00, sizeof(Terminal_offsetStr));
                         itoa((int) strlen(Terminal_command) - Terminal_offset, Terminal_offsetStr, 10);
@@ -533,14 +556,14 @@ void Terminal_VTMode(const uint8_t *args, uint8_t offset) {
                         Terminal_putc_cb('C');
                         Terminal_offset = strlen(Terminal_command);
                         break;
-                    case 3://Delete
-                        if (Terminal_command[Terminal_offset] == 0)break;
+                    case 3: //Delete
+                        if (Terminal_command[Terminal_offset] == 0) break;
                         //记录下游标位置,然后内容前移,恢复游标位置
                         Terminal_Printf(TERMINAL_SAVECURSOR);
                         //在内存里输出光标后的内容,此时会覆盖光标里的字,相当于原地删除了
                         Terminal_Printf(&Terminal_command[Terminal_offset + 1]);
-                        Terminal_putc_cb(0x20);//在末尾输出个空格,覆盖末尾的字留下的残影.
-                        Terminal_Printf(" " TERMINAL_RESTORECURSOR);//恢复光标位置
+                        Terminal_putc_cb(0x20);                      //在末尾输出个空格,覆盖末尾的字留下的残影.
+                        Terminal_Printf(" " TERMINAL_RESTORECURSOR); //恢复光标位置
                         //在内存里把光标后面的内容全部往前移一格(包括末尾的\0)
                         for (uint8_t i = Terminal_offset; i < (uint8_t) strlen(Terminal_command); i++) {
                             Terminal_command[i] = Terminal_command[i + 1];
@@ -634,8 +657,7 @@ uint8_t Terminal_Login() {
         Terminal_Printf("*");
         password[passwordOffset++] = ch;
     } while (1);
-    if (strcmp(TERMINAL_USER, Terminal_GetCommand()) != 0
-        || strcmp(TERMINAL_PASSWORD, password) != 0) {
+    if (strcmp(TERMINAL_USER, Terminal_GetCommand()) != 0 || strcmp(TERMINAL_PASSWORD, password) != 0) {
         Terminal_Printf("Permission denied.\n");
         return 2;
     }
@@ -682,4 +704,3 @@ int Terminal_provided_block_device_erase(const struct lfs_config *c, lfs_block_t
 int Terminal_provided_block_device_sync(const struct lfs_config *c) {
     return 0;
 }
-

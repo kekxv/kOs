@@ -41,9 +41,9 @@
 #endif
 
 // Tips 开启 SSD 输出
-// #ifndef ENABLE_SSD1306_SPI
-// #define ENABLE_SSD1306_SPI
-// #endif
+#ifndef ENABLE_SSD1306_SPI
+#define ENABLE_SSD1306_SPI
+#endif
 
 #ifndef TERMINAL_VT_DEFIND
 #define TERMINAL_VT_DEFIND

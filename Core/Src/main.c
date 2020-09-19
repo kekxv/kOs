@@ -23,6 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../Util/logger.h"
+#include "../Util/ssd1306.h"
+#include "../Util/ssd1306_tests.h"
 #include "../Util/terminal.h"
 #include "../Util/util.h"
 #include "stdio.h"
@@ -105,7 +107,6 @@ int main(void) {
 
     Terminal_init(UtilGetc, &UtilPutc);
     /* USER CODE END 2 */
-
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
