@@ -22,6 +22,10 @@ kOs
 1. cd 切换目录
 1. ls 列出目录内容
 
+### PN5180 
+
+暂未测试通过，未来某天可能会继续弄
+
 ### OLED 软件模拟 SPI 驱动 SSD1306
 
 支持 SSD1306 屏幕输出字符
@@ -40,6 +44,12 @@ kOs
 晶振为8M，总线时钟为24M(/* PLLCLK = 8MHz / 2 * 6 = 24 MHz */),若你的环境与该代码不一样，请自行修改spi通信部分延时
 
 ### 驱动 SSD1306
+
+
+1. SCL    PIN_A5
+1. SDA    PIN_A7
+1. RST    PIN_B14
+1. D/C    PIN_B13
 
 硬件 SPI 驱动使用开源代码，详情可查看:[stm32-ssd1306](https://github.com/afiskon/stm32-ssd1306);
 

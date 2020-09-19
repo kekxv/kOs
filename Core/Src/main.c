@@ -24,7 +24,6 @@
 /* USER CODE BEGIN Includes */
 #include "../Util/logger.h"
 #include "../Util/ssd1306.h"
-#include "../Util/ssd1306_tests.h"
 #include "../Util/terminal.h"
 #include "../Util/util.h"
 #include "stdio.h"
@@ -107,6 +106,7 @@ int main(void) {
 
     Terminal_init(UtilGetc, &UtilPutc);
     /* USER CODE END 2 */
+
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
@@ -214,6 +214,7 @@ static void MX_SPI1_Init(void) {
     hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
     hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+    // hspi1.Init.NSS = SPI_NSS_SOFT; //SPI_NSS_HARD_OUTPUT;
     hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
     hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
     hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
