@@ -3,9 +3,9 @@
 //
 
 
-#include "util.h"
 #include "string.h"
 #include "main.h"
+#include "util.h"
 
 
 #ifdef HAL_SPI_MODULE_ENABLED
