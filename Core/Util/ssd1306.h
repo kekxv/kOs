@@ -52,9 +52,9 @@ _BEGIN_STD_C
 
 /* vvv SPI config vvv */
 
-#ifndef SSD1306_SPI_PORT
-#define SSD1306_SPI_PORT        hspi1
-#endif
+// #ifndef SSD1306_SPI_PORT
+// #define SSD1306_SPI_PORT        hspi1
+// #endif
 
 #ifndef SSD1306_CS_Port
 #define SSD1306_CS_Port         GPIOB
@@ -82,7 +82,7 @@ _BEGIN_STD_C
 #if defined(SSD1306_USE_I2C)
 extern I2C_HandleTypeDef SSD1306_I2C_PORT;
 #elif defined(SSD1306_USE_SPI)
-extern SPI_HandleTypeDef SSD1306_SPI_PORT;
+// extern SPI_HandleTypeDef SSD1306_SPI_PORT;
 #else
 #error "You should define SSD1306_USE_SPI or SSD1306_USE_I2C macro!"
 #endif
