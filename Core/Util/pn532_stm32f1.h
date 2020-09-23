@@ -32,7 +32,7 @@
 #define PN532_RST_GPIO_Port GPIOB
 #define PN532_RST_Pin GPIO_PIN_1
 #define PN532_REQ_GPIO_Port GPIOB
-#define PN532_REQ_Pin GPIO_PIN_2
+#define PN532_REQ_Pin GPIO_PIN_0
 #define SS_GPIO_Port GPIOA
 #define SS_Pin GPIO_PIN_4
 

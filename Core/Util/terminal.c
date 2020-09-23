@@ -123,7 +123,9 @@ int Terminal_ListsDir(const char *path) {
             }
         }
 
-        Terminal_ForeColor(enmCFC_Cyan);
+        if (LFS_TYPE_DIR == info.type) {
+            Terminal_ForeColor(enmCFC_Cyan);
+        }
         Terminal_Printf(info.name);
         Terminal_ResetColor();
         Terminal_Printf("\n");
