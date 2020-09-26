@@ -358,6 +358,7 @@ int Terminal_CatFile(const char *path) {
     return err;
 }
 
+
 int Terminal_provided_block_device_read(const struct lfs_config *c, lfs_block_t block,
                                         lfs_off_t offset, void *buffer, lfs_size_t size) {
     // memcpy(buffer, &Terminal_file_Buff[block][offset], size);

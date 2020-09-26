@@ -463,3 +463,17 @@ uint8_t Terminal_Login() {
 void Terminal_Logout() {
     memset(&terminalUserInfo, 0x00, sizeof(TerminalUserInfo));
 }
+
+
+int Terminal_ZmodemRz() {
+    // TODO 调出弹出框
+    Terminal_Printf(ZMODEM_RZ_STRING);
+    return 0;
+}
+
+int Terminal_ZmodemSz(char *path) {
+    // TODO 调出弹出框
+    Terminal_Printf(ZMODEM_SZ_STRING);
+    return 0;
+}
+

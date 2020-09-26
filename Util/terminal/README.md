@@ -13,9 +13,13 @@ kOs
 ## 支持功能stm32
 
 -[x] Flash 读写
+
 -[ ] TAB 显示支持命令
+
 -[ ] 文件读写
+
 -[ ] 时间记录
+
 -[ ] `rz` `sz` 命令 需要安装 ： `brew install lrzsz` [在 mac 下，实现与服务器进行便捷的文件上传和下载操作。](https://github.com/aikuyun/iterm2-zmodem)
 
 ## 支持命令

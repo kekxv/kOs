@@ -62,6 +62,14 @@
 #define TERMINAL_LIGHTREVERSEMODE "\033[1,7m" /* 将终端设置为灯光反转模式 */
 #endif
 
+#ifndef ZMODEM_RZ_STRING
+#define ZMODEM_RZ_STRING  "rz waiting to receive.**B0100\r\n"
+#endif
+#ifndef ZMODEM_SZ_STRING
+#define ZMODEM_SZ_STRING  "**B00000000000000\r\n"
+#endif
+
+
 #ifndef Terminal_ForeColor
 /**
  * 设置前景色
@@ -82,28 +90,28 @@
 #endif
 
 typedef enum {
-    enmCFC_Red = 31,
-    enmCFC_Green = 32,
-    enmCFC_Blue = 34,
-    enmCFC_Yellow = 33,
-    enmCFC_Purple = 35,
-    enmCFC_Cyan = 36,
-    enmCFC_White = 37,
-    enmCFC_Black = 30,
-    enmCFC_Default = 0,
-} ConsoleForegroundColor;
+    enmCFC_Red = 31
+    , enmCFC_Green = 32
+    , enmCFC_Blue = 34
+    , enmCFC_Yellow = 33
+    , enmCFC_Purple = 35
+    , enmCFC_Cyan = 36
+    , enmCFC_White = 37
+    , enmCFC_Black = 30
+    , enmCFC_Default = 0
+    , } ConsoleForegroundColor;
 
 typedef enum {
-    enmCBC_Red = 41,
-    enmCBC_Green = 42,
-    enmCBC_Blue = 44,
-    enmCBC_Yellow = 43,
-    enmCBC_Purple = 45,
-    enmCBC_Cyan = 46,
-    enmCBC_White = 47,
-    enmCBC_Black = 40,
-    enmCBC_Default = 0,
-} ConsoleBackGroundColor;
+    enmCBC_Red = 41
+    , enmCBC_Green = 42
+    , enmCBC_Blue = 44
+    , enmCBC_Yellow = 43
+    , enmCBC_Purple = 45
+    , enmCBC_Cyan = 46
+    , enmCBC_White = 47
+    , enmCBC_Black = 40
+    , enmCBC_Default = 0
+    , } ConsoleBackGroundColor;
 
 
 /**
@@ -121,7 +129,6 @@ typedef struct {
     char Path[50];
     char History[5][25];
 } TerminalUserInfo;
-
 
 
 /**
@@ -155,7 +162,9 @@ void Terminal_PrintPs();
 char *Terminal_GetCommand();
 
 void Terminal_Printf(const char *str);
+
 void Terminal_PrintfNum(int32_t str);
+
 void Terminal_PrintfChar(char ch);
 
 /**
@@ -173,7 +182,18 @@ void Terminal_lsb_release();
 
 void Terminal_print_logo();
 
+/**
+ * 上传到服务器
+ * @return
+ */
+int Terminal_ZmodemRz();
 
+/**
+ * 从服务器下载
+ * @param path
+ * @return
+ */
+int Terminal_ZmodemSz(char *path);
 
 
 #endif //KOS_TERMINAL_H

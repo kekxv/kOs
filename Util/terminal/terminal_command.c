@@ -256,6 +256,48 @@ void TerminalCommand_Run() {
             }
         }
     }
+    else if (0 == strcmp(command, "rz")) {
+        if (0 < Terminal_ZmodemRz()) {
+            Terminal_Printf("rz : rz command error: ");
+            Terminal_ForeColor(enmCFC_Red);
+            Terminal_Printf(command);
+            Terminal_ResetColor();
+            Terminal_Printf("\n");
+        }
+    }
+    else if (0 == strcmp(command, "sz")) {
+        if (offset == 0) {
+            Terminal_Printf("sz : ");
+            Terminal_ForeColor(enmCFC_Red);
+            Terminal_Printf("bad param ");
+            Terminal_ResetColor();
+            Terminal_Printf("\n");
+        }
+        else {
+            memcpy(command, &command[offset + 1], len - offset);
+            command[len - offset] = 0;
+            UtilTrimSpace(command);
+            p = strchr(command, ' ');
+            if (p != NULL) {
+                Terminal_Printf("sz : ");
+                Terminal_ForeColor(enmCFC_Red);
+                Terminal_Printf("bad param ");
+                Terminal_ResetColor();
+                Terminal_Printf("\n");
+            }
+            else {
+                int err = Terminal_CatFile(command);
+                if (0 != err) {
+                    Terminal_Printf("sz : ");
+                    Terminal_ForeColor(enmCFC_Red);
+                    Terminal_Printf("sz : sz command error : ");
+                    Terminal_PrintfNum(err);
+                    Terminal_ResetColor();
+                    Terminal_Printf("\n");
+                }
+            }
+        }
+    }
     else {
         if (offset > 0) {
             command[offset] = back;
@@ -293,3 +335,4 @@ void TerminalCommand_Gpio(char *Gpio, const char *state) {
     Terminal_ResetColor();
     Terminal_Printf("\n");
 }
+
