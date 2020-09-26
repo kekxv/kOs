@@ -18,6 +18,8 @@ project(kOs C CXX ASM)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
+include(cmake/redefine_filename.cmake)
+
 #Uncomment for hardware floating point
 #add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
 #add_compile_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16)
@@ -46,11 +48,13 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
+include(Util/util.cmake)
+
 include_directories(Core/Inc Drivers/STM32F1xx_HAL_Driver/Inc Drivers/STM32F1xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F1xx/Include Drivers/CMSIS/Include)
 
 add_definitions(-DUSE_HAL_DRIVER -DSTM32F103xB -DDEBUG)
 
-file(GLOB_RECURSE SOURCES "Core/*.*" "Drivers/*.*")
+file(GLOB_RECURSE SOURCES "Core/*.*" "Drivers/*.*" "Util/*.*")
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F103C8TX_FLASH.ld)
 
@@ -60,6 +64,12 @@ add_link_options(-T ${LINKER_SCRIPT})
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
+option(ENABLE_FILENAME "option for FILENAME" ON)
+if (ENABLE_FILENAME)
+    #重新定义当前目标的源文件的 __FILENAME__ 宏
+    redefine_file_macro(${PROJECT_NAME}.elf)
+endif ()
+
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
 
@@ -68,3 +78,12 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
         COMMENT "Building ${HEX_FILE}
 Building ${BIN_FILE}")
+
+install(FILES
+        ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex
+        DESTINATION HEX_FILE)
+install(FILES
+        ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin
+        DESTINATION BIN_FILE)
+
+include(cmake/vInstallCpack.cmake)

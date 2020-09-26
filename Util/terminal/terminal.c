@@ -4,11 +4,16 @@
 
 #include "terminal.h"
 #include "main.h"
+
+#if defined(ENABLE_SSD1306_SPI) || defined(ENABLE_OLED_SSD1306_SOFT_SPI)
 #include "ssd1306.h"
+#include <stdbool.h>
+#endif
+
 #include "string.h"
 #include "terminal_command.h"
+#include "terminal_filesystem.h"
 #include "util.h"
-#include <stdbool.h>
 #include <stdlib.h>
 
 TerminalUserInfo terminalUserInfo = {};
@@ -18,257 +23,6 @@ char Terminal_command[TERMINAL_COMMAND_MAX_LENGTH] = {};
 
 Terminal_getc Terminal_getc_cb = NULL;
 Terminal_putc Terminal_putc_cb = NULL;
-
-lfs_t Terminal_lfs_roots;
-lfs_dir_t Terminal_lfs_dirs;
-struct lfs_info Terminal_lfs_info;
-// configuration of the filesystem is provided by this struct
-const struct lfs_config Terminal_cfg = {
-        .context = NULL,
-        // block device operations
-        .read = Terminal_provided_block_device_read,
-        .prog = Terminal_provided_block_device_prog,
-        .erase = Terminal_provided_block_device_erase,
-        .sync = Terminal_provided_block_device_sync,
-
-        // block device configuration
-        .read_size = 16,
-        .prog_size = 16,
-        .block_size = TERMINAL_LFS_BUFF_PAGESIZE,
-        .block_count = TERMINAL_LFS_BUFF_COUNT,
-        .block_cycles = 100,
-        .cache_size = 16,
-        .lookahead_size = 16,
-        .read_buffer = NULL,
-        .prog_buffer = NULL,
-        .lookahead_buffer = NULL,
-        .name_max = 0,
-        .file_max = 0,
-        .attr_max = 0};
-
-void Terminal_Lfs_Init() {
-    // mount the filesystem
-    int err = lfs_mount(&Terminal_lfs_roots, &Terminal_cfg);
-    // reformat if we can't mount the filesystem
-    // this should only happen on the first boot
-    if (err) {
-        lfs_format(&Terminal_lfs_roots, &Terminal_cfg);
-        err = lfs_mount(&Terminal_lfs_roots, &Terminal_cfg);
-    }
-
-    Terminal_Mkdir("/");
-    Terminal_Mkdir(TERMINAL_SYSTEM_ROOTS);
-    Terminal_Mkdir(TERMINAL_SYSTEM_ROOTS "/home");
-    Terminal_Mkdir(TERMINAL_SYSTEM_ROOTS "/bin");
-    Terminal_Mkdir(TERMINAL_SYSTEM_ROOTS "/data");
-
-    Terminal_ChangeDir(TERMINAL_SYSTEM_ROOTS);
-}
-
-int Terminal_ChangeDir(const char *path) {
-    lfs_dir_close(&Terminal_lfs_roots, &Terminal_lfs_dirs);
-    int err = lfs_dir_open(&Terminal_lfs_roots, &Terminal_lfs_dirs, path);
-    if (0 == err) {
-        memcpy(terminalUserInfo.Path, path, strlen(path));
-        terminalUserInfo.Path[strlen(path)] = 0;
-    }
-    return err;
-}
-
-int Terminal_ListsDir(const char *path) {
-    lfs_dir_t dir;
-    int err = lfs_dir_open(&Terminal_lfs_roots, &dir, path);
-    if (err) {
-        return err;
-    }
-    Terminal_ForeColor(enmCFC_Cyan);
-    Terminal_Printf("Path : ");
-    Terminal_Printf(Terminal_GetDirPathThe(path));
-    Terminal_ResetColor();
-    Terminal_Printf("\n");
-    struct lfs_info info;
-    while (true) {
-        int res = lfs_dir_read(&Terminal_lfs_roots, &dir, &info);
-        if (res < 0) {
-            return res;
-        }
-        if (res == 0) {
-            break;
-        }
-        switch (info.type) {
-            case LFS_TYPE_REG:
-                Terminal_Printf("reg ");
-                break;
-            case LFS_TYPE_DIR:
-                Terminal_Printf("dir ");
-                break;
-            default:
-                Terminal_Printf("?   ");
-                break;
-        }
-
-        char da[10] = {};
-        static const char *prefixes[] = {"", "K", "M", "G"};
-        for (int i = sizeof(prefixes) / sizeof(prefixes[0]) - 1; i >= 0; i--) {
-            if (info.size >= (1 << 10 * i) - 1) {
-                // printf("%*u%sB ", 4-(i != 0), info.size >> 10*i, prefixes[i]);
-                itoa(info.size >> 10 * i, da, 10);
-                for (int i = strlen(da); i < 4; i++) {
-                    Terminal_Printf(" ");
-                }
-                Terminal_Printf(da);
-                Terminal_Printf(prefixes[i]);
-                Terminal_Printf("B ");
-                break;
-            }
-        }
-
-        if (LFS_TYPE_DIR == info.type) {
-            Terminal_ForeColor(enmCFC_Cyan);
-        }
-        Terminal_Printf(info.name);
-        Terminal_ResetColor();
-        Terminal_Printf("\n");
-    }
-
-    err = lfs_dir_close(&Terminal_lfs_roots, &dir);
-    if (err) {
-        return err;
-    }
-
-    return 0;
-}
-
-
-#ifdef WIN32
-#define IS_SLASH(s) ((s == '/') || (s == '\\'))
-#else
-#define IS_SLASH(s) (s == '/')
-#endif
-
-void Terminal_ap_getparents(char *name) {
-    char *next;
-    int l, w, first_dot;
-
-    /* Four paseses,as per RFC 1808 */
-    /* a) remove ./ path segments */
-    for (next = name; *next && (*next != '.'); next++) {
-    }
-
-    l = w = first_dot = next - name;
-    while (name[l] != '\0') {
-        if (name[l] == '.' && IS_SLASH(name[l + 1]) && (l == 0 || IS_SLASH(name[l - 1])))
-            l += 2;
-        else
-            name[w++] = name[l++];
-    }
-
-    /* b) remove trailing . path,segment */
-    if (w == 1 && name[0] == '.')
-        w--;
-    else if (w > 1 && name[w - 1] == '.' && IS_SLASH(name[w - 2]))
-        w--;
-    name[w] = '\0';
-
-    /* c) remove all xx/../ segments. (including leading ../ and /../) */
-    l = first_dot;
-
-    while (name[l] != '\0') {
-        if (name[l] == '.' && name[l + 1] == '.' && IS_SLASH(name[l + 2]) && (l == 0 || IS_SLASH(name[l - 1]))) {
-            int m = l + 3, n;
-
-            l = l - 2;
-            if (l >= 0) {
-                while (l >= 0 && !IS_SLASH(name[l]))
-                    l--;
-                l++;
-            } else
-                l = 0;
-            n = l;
-            while ((name[n] = name[m]))
-                (++n, ++m);
-        } else
-            ++l;
-    }
-
-    /* d) remove trailing xx/.. segment. */
-    if (l == 2 && name[0] == '.' && name[1] == '.')
-        name[0] = '\0';
-    else if (l > 2 && name[l - 1] == '.' && name[l - 2] == '.' && IS_SLASH(name[l - 3])) {
-        l = l - 4;
-        if (l >= 0) {
-            while (l >= 0 && !IS_SLASH(name[l]))
-                l--;
-            l++;
-        } else
-            l = 0;
-        name[l] = '\0';
-    }
-}
-
-int Terminal_GetDirSystemRoots(const char *path, char *_path) {
-    // if (path[0] == '/') {
-    // }
-    int len = 0;
-    if (strlen(path) == 0) {
-        len = strlen(terminalUserInfo.Path);
-        memcpy(_path, terminalUserInfo.Path, len);
-    } else if (path[0] != '/') {
-        len = strlen(terminalUserInfo.Path);
-        memcpy(_path, terminalUserInfo.Path, len);
-        if (_path[len - 1] != '/') {
-            _path[len++] = '/';
-        }
-        memcpy(&_path[len], path, strlen(path));
-        len += strlen(path);
-    } else {
-        memcpy(_path, TERMINAL_SYSTEM_ROOTS, strlen(TERMINAL_SYSTEM_ROOTS));
-        memcpy(&_path[strlen(TERMINAL_SYSTEM_ROOTS)], path, strlen(path));
-        len = strlen(TERMINAL_SYSTEM_ROOTS) + strlen(path);
-    }
-    _path[len] = 0;
-    Terminal_ap_getparents(_path);
-    len = strlen(_path);
-    if (0 != strcmp(TERMINAL_SYSTEM_ROOTS "/", _path) && _path[len - 1] == '/') {
-        _path[--len] = 0;
-    }
-    return len;
-}
-
-int Terminal_ChangeDirSystemRoots(const char *path) {
-    char _path[MAX_PATH_SIZE];
-    Terminal_GetDirSystemRoots(path, _path);
-    return Terminal_ChangeDir(_path);
-}
-
-int Terminal_ListsDirSystemRoots(const char *path) {
-    char _path[MAX_PATH_SIZE];
-    Terminal_GetDirSystemRoots(path, _path);
-    return Terminal_ListsDir(_path);
-}
-
-const char *Terminal_GetDirPath() {
-    return Terminal_GetDirPathThe(terminalUserInfo.Path);
-}
-
-const char *Terminal_GetDirPathThe(const char *path) {
-    const char *p = strstr(path, TERMINAL_SYSTEM_ROOTS);
-    if (p) {
-        if (path - p == 0) {
-            return &path[strlen(TERMINAL_SYSTEM_ROOTS)];
-        }
-    }
-    return path;
-}
-
-int Terminal_Mkdir(const char *path) {
-    struct lfs_info _lfs_info;
-    int err = lfs_stat(&Terminal_lfs_roots, path, &_lfs_info);
-    if (err) {
-        err = lfs_mkdir(&Terminal_lfs_roots, path);
-    }
-    return err;
-}
 
 void Terminal_init(Terminal_getc getc_cb, Terminal_putc putc_cb) {
     Terminal_getc_cb = getc_cb;
@@ -397,7 +151,8 @@ void Terminal_Color(ConsoleForegroundColor foreColor, ConsoleBackGroundColor bac
     }
     if (enmCFC_Default == foreColor && enmCBC_Default == backColor) {
         Terminal_Printf("\x1b[0m");
-    } else {
+    }
+    else {
         char foreColorStr[6] = {};
         char backColorStr[6] = {};
         itoa(foreColor, foreColorStr, 10);
@@ -409,7 +164,8 @@ void Terminal_Color(ConsoleForegroundColor foreColor, ConsoleBackGroundColor bac
             Terminal_putc_cb(';');
             Terminal_Printf(foreColorStr);
             Terminal_putc_cb('m');
-        } else {
+        }
+        else {
             // Terminal_Printf("\x1b[%d;%dm", foreColor, backColor);
             Terminal_Printf("\x1b[");
             Terminal_Printf(foreColorStr);
@@ -446,7 +202,7 @@ int Terminal_ReadCommand() {
         return 0;
     }
     Terminal_offset = 0;
-    char ch = 0;
+    char ch;
     memset(Terminal_command, 0x00, TERMINAL_COMMAND_MAX_LENGTH);
     do {
         ch = Terminal_getc_cb();
@@ -463,7 +219,8 @@ int Terminal_ReadCommand() {
                 // VT 模式 [ 开启
                 if (ch != '[') {
                     continue;
-                } else {
+                }
+                else {
                     uint8_t args[5] = {};
                     uint8_t offset = 0;
                     do {
@@ -480,7 +237,7 @@ int Terminal_ReadCommand() {
                     Terminal_VTMode(args, offset);
                 }
                 continue;
-                break;
+                // break;
             case 0x08: //删除
             case 0x06:
             case 0x07:
@@ -499,7 +256,7 @@ int Terminal_ReadCommand() {
                     Terminal_command[i] = Terminal_command[i + 1];
                 }
                 continue;
-                break;
+                // break;
             case '\t':
                 break;
             default: {
@@ -514,7 +271,8 @@ int Terminal_ReadCommand() {
                 Terminal_Printf(&Terminal_command[Terminal_offset + 1]);
                 Terminal_Printf(" " TERMINAL_RESTORECURSOR); //恢复光标位置
                 Terminal_command[Terminal_offset++] = ch;
-            } break;
+            }
+                break;
         }
     } while (Terminal_offset < TERMINAL_COMMAND_MAX_LENGTH);
     if (Terminal_offset > 0) {
@@ -601,6 +359,19 @@ void Terminal_Printf(const char *str) {
     }
 }
 
+void Terminal_PrintfNum(int32_t str) {
+    char da[6];
+    Terminal_Printf(itoa(str, da, 10));
+}
+
+void Terminal_PrintfChar(char ch) {
+    if (Terminal_getc_cb == NULL ||
+        Terminal_putc_cb == NULL) {
+        return;
+    }
+    Terminal_putc_cb(ch);
+}
+
 int Terminal_Run() {
     if (Terminal_Login() != 0) {
         return 0;
@@ -613,17 +384,22 @@ int Terminal_Run() {
             if (strcmp(Terminal_GetCommand(), "exit") == 0) {
                 Terminal_Clear();
                 break;
-            } else if (strcmp(Terminal_GetCommand(), "reboot") == 0) {
+            }
+            else if (strcmp(Terminal_GetCommand(), "reboot") == 0) {
                 reboot_flag = 1;
                 break;
-            } else if (0 == strcmp(Terminal_GetCommand(), "pwd")) {
+            }
+            else if (0 == strcmp(Terminal_GetCommand(), "pwd")) {
                 Terminal_Printf(Terminal_GetDirPath());
                 Terminal_Printf("\n");
-            } else if (0 == strcmp(Terminal_GetCommand(), "lsb_release")) {
+            }
+            else if (0 == strcmp(Terminal_GetCommand(), "lsb_release")) {
                 Terminal_lsb_release();
-            } else if (0 == strcmp(Terminal_GetCommand(), "clear")) {
+            }
+            else if (0 == strcmp(Terminal_GetCommand(), "clear")) {
                 Terminal_Clear();
-            } else {
+            }
+            else {
                 TerminalCommand_Run();
             }
         }
@@ -644,7 +420,7 @@ uint8_t Terminal_Login() {
         return 2;
     }
     char password[20] = {};
-    char ch = 0;
+    char ch; // = 0;
     uint8_t passwordOffset = 0;
     Terminal_Printf("Password:");
     do {
@@ -671,7 +447,8 @@ uint8_t Terminal_Login() {
     memset(terminalUserInfo.History, 0x00, sizeof(terminalUserInfo.History));
     if (0 == strcmp("root", terminalUserInfo.UserName)) {
         Terminal_ChangeDirSystemRoots("/");
-    } else {
+    }
+    else {
         Terminal_ChangeDirSystemRoots("/home");
         Terminal_Mkdir(terminalUserInfo.UserName);
         Terminal_ChangeDirSystemRoots(terminalUserInfo.UserName);
@@ -681,28 +458,4 @@ uint8_t Terminal_Login() {
 
 void Terminal_Logout() {
     memset(&terminalUserInfo, 0x00, sizeof(TerminalUserInfo));
-}
-
-
-uint8_t Terminal_file_Buff[TERMINAL_LFS_BUFF_COUNT][TERMINAL_LFS_BUFF_PAGESIZE];
-
-int Terminal_provided_block_device_read(const struct lfs_config *c, lfs_block_t block,
-                                        lfs_off_t off, void *buffer, lfs_size_t size) {
-    memcpy(buffer, &Terminal_file_Buff[block][off], size);
-    return 0;
-}
-
-int Terminal_provided_block_device_prog(const struct lfs_config *c, lfs_block_t block,
-                                        lfs_off_t off, const void *buffer, lfs_size_t size) {
-    memcpy(&Terminal_file_Buff[block][off], buffer, size);
-    return 0;
-}
-
-int Terminal_provided_block_device_erase(const struct lfs_config *c, lfs_block_t block) {
-    memset(Terminal_file_Buff[block], 0x00, sizeof(Terminal_file_Buff[block]));
-    return 0;
-}
-
-int Terminal_provided_block_device_sync(const struct lfs_config *c) {
-    return 0;
 }

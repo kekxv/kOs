@@ -18,18 +18,14 @@
 #define TERMINAL_SYSTEM_NAME "kOs"
 #endif
 
-#ifndef TERMINAL_SYSTEM_ROOTS
-#define TERMINAL_SYSTEM_ROOTS "/roots"
-#endif
 #ifndef MAX_PATH_SIZE
 #define MAX_PATH_SIZE 56
 #endif
+// 使用 FLASH 块大小作为存储
 #ifndef TERMINAL_LFS_BUFF_COUNT
-#define TERMINAL_LFS_BUFF_COUNT 10
+#define TERMINAL_LFS_BUFF_COUNT 4
 #endif
-#ifndef TERMINAL_LFS_BUFF_PAGESIZE
-#define TERMINAL_LFS_BUFF_PAGESIZE 256
-#endif
+
 #ifndef TERMINAL_USER
 #define TERMINAL_USER "root"
 #endif
@@ -127,15 +123,6 @@ typedef struct {
 } TerminalUserInfo;
 
 
-// variables used by the filesystem
-extern lfs_t Terminal_lfs_roots;
-extern lfs_dir_t Terminal_lfs_dirs;
-extern struct lfs_info Terminal_lfs_info;
-
-// configuration of the filesystem is provided by this struct
-extern const struct lfs_config Terminal_cfg;
-
-void Terminal_Lfs_Init();
 
 /**
  * 初始化
@@ -168,39 +155,13 @@ void Terminal_PrintPs();
 char *Terminal_GetCommand();
 
 void Terminal_Printf(const char *str);
+void Terminal_PrintfNum(int32_t str);
+void Terminal_PrintfChar(char ch);
 
 /**
  * 开启终端模式
  */
 int Terminal_Run();
-
-/**
- * 切换当前目录
- * @param path
- * @return
- */
-int Terminal_ChangeDir(const char *path);
-
-int Terminal_ListsDir(const char *path);
-
-int Terminal_ChangeDirSystemRoots(const char *path);
-
-void Terminal_ap_getparents(char *name);
-
-int Terminal_GetDirSystemRoots(const char *path, char *_path);
-
-int Terminal_ListsDirSystemRoots(const char *path);
-
-/**
- * 创建目录
- * @param path
- * @return
- */
-int Terminal_Mkdir(const char *path);
-
-const char *Terminal_GetDirPath();
-
-const char *Terminal_GetDirPathThe(const char *path);
 
 uint8_t Terminal_Login();
 
@@ -213,14 +174,6 @@ void Terminal_lsb_release();
 void Terminal_print_logo();
 
 
-int Terminal_provided_block_device_read(const struct lfs_config *c, lfs_block_t block,
-                                        lfs_off_t off, void *buffer, lfs_size_t size);
 
-int Terminal_provided_block_device_prog(const struct lfs_config *c, lfs_block_t block,
-                                        lfs_off_t off, const void *buffer, lfs_size_t size);
-
-int Terminal_provided_block_device_erase(const struct lfs_config *c, lfs_block_t block);
-
-int Terminal_provided_block_device_sync(const struct lfs_config *c);
 
 #endif //KOS_TERMINAL_H

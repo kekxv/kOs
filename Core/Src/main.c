@@ -22,10 +22,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "../Util/logger.h"
-#include "../Util/ssd1306.h"
-#include "../Util/terminal.h"
-#include "../Util/util.h"
+#include "logger.h"
+#include "flash_rw.h"
+#include "ssd1306.h"
+#include "terminal.h"
+#include "util.h"
 #include "stdio.h"
 /* USER CODE END Includes */
 

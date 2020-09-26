@@ -3,9 +3,9 @@
 //
 
 
-#include "string.h"
-#include "main.h"
 #include "util.h"
+#include "main.h"
+#include "string.h"
 
 
 #ifdef HAL_SPI_MODULE_ENABLED
@@ -25,7 +25,6 @@ HAL_StatusTypeDef UtilSpiRead(uint8_t *data, uint16_t dataLen, uint32_t timeout)
 #ifdef HAL_UART_MODULE_ENABLED
 
 #include "stdio.h"
-#include "stdarg.h"
 
 extern UART_HandleTypeDef huart1;
 
@@ -38,7 +37,7 @@ extern UART_HandleTypeDef huart1;
 #define GETCHAR_PROTOTYPE_CALL() __io_getchar(NULL)
 #else
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#define PUTCHAR_PROTOTYPE_CALL(x) fputc(x,NULL)
+#define PUTCHAR_PROTOTYPE_CALL(x) fputc(x, NULL)
 #define GETCHAR_PROTOTYPE int fgetc(FILE *f)
 #define GETCHAR_PROTOTYPE_CALL() fgetc(NULL)
 #endif /* __GNUC__ */
@@ -132,7 +131,7 @@ char UtilGetc() {
  */
 int UtilGets(char str[], uint8_t len) {
     uint8_t offset = 0;
-    if (len == 0)return 0;
+    if (len == 0) return 0;
     len--;
     while (offset < len) {
         str[offset] = UtilGetc();
@@ -197,7 +196,7 @@ USBD_StatusTypeDef UtilUsbSendStr(char data[]) {
 #ifdef HAL_GPIO_MODULE_ENABLED
 
 int16_t UtilGpio(char GpioIndex, uint8_t pIndex, int8_t PinState) {
-    if (pIndex > 15)return -1;
+    if (pIndex > 15) return -1;
     GPIO_TypeDef *GPIOx = GPIOA;
     switch (GpioIndex) {
         case 'A':
@@ -236,21 +235,22 @@ int16_t UtilGpio(char GpioIndex, uint8_t pIndex, int8_t PinState) {
  */
 void UtilGetChipID(uint8_t ChipID[12]) {
     uint32_t temp0, temp1, temp2;
-    temp0 = *(__IO uint32_t *) (0x1FFFF7E8);    //产品唯一身份标识寄存器（96位）
-    temp1 = *(__IO uint32_t *) (0x1FFFF7EC);
-    temp2 = *(__IO uint32_t *) (0x1FFFF7F0);
-    ChipID[0] = (uint8_t) (temp0 & 0x000000FF);
-    ChipID[1] = (uint8_t) ((temp0 & 0x0000FF00) >> 8);
-    ChipID[2] = (uint8_t) ((temp0 & 0x00FF0000) >> 16);
-    ChipID[3] = (uint8_t) ((temp0 & 0xFF000000) >> 24);
-    ChipID[4] = (uint8_t) (temp1 & 0x000000FF);
-    ChipID[5] = (uint8_t) ((temp1 & 0x0000FF00) >> 8);
-    ChipID[6] = (uint8_t) ((temp1 & 0x00FF0000) >> 16);
-    ChipID[7] = (uint8_t) ((temp1 & 0xFF000000) >> 24);
-    ChipID[8] = (uint8_t) (temp2 & 0x000000FF);
-    ChipID[9] = (uint8_t) ((temp2 & 0x0000FF00) >> 8);
-    ChipID[10] = (uint8_t) ((temp2 & 0x00FF0000) >> 16);
-    ChipID[11] = (uint8_t) ((temp2 & 0xFF000000) >> 24);
+
+    temp0 = *(__IO uint32_t *) (UID_BASE); //产品唯一身份标识寄存器（96位）
+    temp1 = *(__IO uint32_t *) (UID_BASE + 4);
+    temp2 = *(__IO uint32_t *) (UID_BASE + 8);
+    ChipID[0] = (uint8_t)(temp0 & 0x000000FF);
+    ChipID[1] = (uint8_t)((temp0 & 0x0000FF00) >> 8);
+    ChipID[2] = (uint8_t)((temp0 & 0x00FF0000) >> 16);
+    ChipID[3] = (uint8_t)((temp0 & 0xFF000000) >> 24);
+    ChipID[4] = (uint8_t)(temp1 & 0x000000FF);
+    ChipID[5] = (uint8_t)((temp1 & 0x0000FF00) >> 8);
+    ChipID[6] = (uint8_t)((temp1 & 0x00FF0000) >> 16);
+    ChipID[7] = (uint8_t)((temp1 & 0xFF000000) >> 24);
+    ChipID[8] = (uint8_t)(temp2 & 0x000000FF);
+    ChipID[9] = (uint8_t)((temp2 & 0x0000FF00) >> 8);
+    ChipID[10] = (uint8_t)((temp2 & 0x00FF0000) >> 16);
+    ChipID[11] = (uint8_t)((temp2 & 0xFF000000) >> 24);
 }
 
 #pragma clang diagnostic pop
@@ -258,14 +258,13 @@ void UtilGetChipID(uint8_t ChipID[12]) {
 
 void UtilGetChipInfo(UtilChipInfo *chipInfo) {
     memset(chipInfo, 0x00, sizeof(UtilChipInfo));
-    chipInfo->FlashSize = *(uint16_t *) (0x1FFFF7E0);    //闪存容量寄存器
+    chipInfo->FlashSize = *(uint16_t *) (FLASHSIZE_BASE); //闪存容量寄存器
     UtilGetChipID(chipInfo->ChipID);
     const char *buildData = __DATE__ " " __TIME__;
     memcpy(chipInfo->BuildDate, buildData, strlen(buildData));
     chipInfo->VersionMain = __Util_STDPERIPH_VERSION_MAIN;
     chipInfo->VersionSub1 = __Util_STDPERIPH_VERSION_MAIN;
     chipInfo->VersionSub2 = __Util_STDPERIPH_VERSION_MAIN;
-
 }
 
 const char *UtilUpperChar(char *ch) {
