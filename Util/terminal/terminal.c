@@ -214,6 +214,10 @@ int Terminal_ReadCommand() {
             break;
         }
         switch (ch) {
+            case '\3':// Ctrl c 按键
+                Terminal_Printf("\r\n");
+                return 0;
+                break;
             case 0x1B: //ESC
                 ch = Terminal_getc_cb();
                 // VT 模式 [ 开启
