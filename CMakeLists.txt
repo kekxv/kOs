@@ -81,9 +81,9 @@ Building ${BIN_FILE}")
 
 install(FILES
         ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex
-        DESTINATION HEX_FILE)
+        DESTINATION "./")
 install(FILES
         ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin
-        DESTINATION BIN_FILE)
+        DESTINATION "./")
 
 include(cmake/vInstallCpack.cmake)
