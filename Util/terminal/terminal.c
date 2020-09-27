@@ -382,32 +382,38 @@ int Terminal_Run() {
     }
     Terminal_Printf("Last login on tty \n");
     int reboot_flag = 0;
+    int argc = 0;
+    char **argv = malloc(25 * sizeof(char *));
     while (1) {
         Terminal_PrintPs();
         if (Terminal_ReadCommand() > 0) {
-            if (strcmp(Terminal_GetCommand(), "exit") == 0) {
+            TerminalCommand_ParseArgs(Terminal_GetCommand(), &argc, argv);
+            if (argc <= 0)continue;
+            if (strcmp(argv[0], "exit") == 0) {
                 Terminal_Clear();
                 break;
             }
-            else if (strcmp(Terminal_GetCommand(), "reboot") == 0) {
+            else if (strcmp(argv[0], "reboot") == 0) {
                 reboot_flag = 1;
                 break;
             }
-            else if (0 == strcmp(Terminal_GetCommand(), "pwd")) {
+            else if (0 == strcmp(argv[0], "pwd")) {
                 Terminal_Printf(Terminal_GetDirPath());
                 Terminal_Printf("\n");
             }
-            else if (0 == strcmp(Terminal_GetCommand(), "lsb_release")) {
+            else if (0 == strcmp(argv[0], "lsb_release")) {
                 Terminal_lsb_release();
             }
-            else if (0 == strcmp(Terminal_GetCommand(), "clear")) {
+            else if (0 == strcmp(argv[0], "clear")) {
                 Terminal_Clear();
             }
             else {
-                TerminalCommand_Run();
+                TerminalCommand_Run(argc, argv);
             }
         }
     }
+    // free(argv);
+    // argv = NULL;
     Terminal_Logout();
     return reboot_flag;
 }
