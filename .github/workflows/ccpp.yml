@@ -32,8 +32,8 @@ jobs:
             mkdir -p ~/GCC_ARM_NONE_EABI
             sudo dpkg -L gcc-arm-none-eabi | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/GCC_ARM_NONE_EABI
           fi
-#      - name: install_build-essential
-#        run: sudo apt update && sudo apt-get install -y gcc-arm-none-eabi
+      #      - name: install_build-essential
+      #        run: sudo apt update && sudo apt-get install -y gcc-arm-none-eabi
       - name: configure
         run: mkdir build-ubuntu && cd build-ubuntu && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
       - name: build

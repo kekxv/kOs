@@ -83,7 +83,15 @@ void UtilClearRead() {
  * @param ch
  */
 void UtilPutc(char ch) {
-    HAL_UART_Transmit(&huart1, (uint8_t *) &ch, 1, 0xffff);
+    UtilPutcTimeout(ch, 0xffff);
+}
+
+/**
+ * 发送一个字节到串口
+ * @param ch
+ */
+void UtilPutcTimeout(char ch, int timeout) {
+    HAL_UART_Transmit(&huart1, (uint8_t *) &ch, 1, timeout);
 }
 
 /**
@@ -116,11 +124,16 @@ void UtilPutsLine(const char *str) {
  */
 char UtilGetc() {
     uint8_t ch = 0;
-    HAL_StatusTypeDef ret = HAL_UART_Receive(&huart1, (uint8_t *) &ch, 1, 0xffff);
+    HAL_StatusTypeDef ret = UtilGetcTimeout(&ch, 0xffff);
     // if (ret == HAL_OK && ch != 0) {
     //     UtilPutc(ch);
     // }
     return ch;
+}
+
+HAL_StatusTypeDef UtilGetcTimeout(uint8_t *ch, int timeout) {
+    HAL_StatusTypeDef ret = HAL_UART_Receive(&huart1, (uint8_t *) ch, 1, timeout);
+    return ret;
 }
 
 /**
@@ -239,18 +252,18 @@ void UtilGetChipID(uint8_t ChipID[12]) {
     temp0 = *(__IO uint32_t *) (UID_BASE); //产品唯一身份标识寄存器（96位）
     temp1 = *(__IO uint32_t *) (UID_BASE + 4);
     temp2 = *(__IO uint32_t *) (UID_BASE + 8);
-    ChipID[0] = (uint8_t)(temp0 & 0x000000FF);
-    ChipID[1] = (uint8_t)((temp0 & 0x0000FF00) >> 8);
-    ChipID[2] = (uint8_t)((temp0 & 0x00FF0000) >> 16);
-    ChipID[3] = (uint8_t)((temp0 & 0xFF000000) >> 24);
-    ChipID[4] = (uint8_t)(temp1 & 0x000000FF);
-    ChipID[5] = (uint8_t)((temp1 & 0x0000FF00) >> 8);
-    ChipID[6] = (uint8_t)((temp1 & 0x00FF0000) >> 16);
-    ChipID[7] = (uint8_t)((temp1 & 0xFF000000) >> 24);
-    ChipID[8] = (uint8_t)(temp2 & 0x000000FF);
-    ChipID[9] = (uint8_t)((temp2 & 0x0000FF00) >> 8);
-    ChipID[10] = (uint8_t)((temp2 & 0x00FF0000) >> 16);
-    ChipID[11] = (uint8_t)((temp2 & 0xFF000000) >> 24);
+    ChipID[0] = (uint8_t) (temp0 & 0x000000FF);
+    ChipID[1] = (uint8_t) ((temp0 & 0x0000FF00) >> 8);
+    ChipID[2] = (uint8_t) ((temp0 & 0x00FF0000) >> 16);
+    ChipID[3] = (uint8_t) ((temp0 & 0xFF000000) >> 24);
+    ChipID[4] = (uint8_t) (temp1 & 0x000000FF);
+    ChipID[5] = (uint8_t) ((temp1 & 0x0000FF00) >> 8);
+    ChipID[6] = (uint8_t) ((temp1 & 0x00FF0000) >> 16);
+    ChipID[7] = (uint8_t) ((temp1 & 0xFF000000) >> 24);
+    ChipID[8] = (uint8_t) (temp2 & 0x000000FF);
+    ChipID[9] = (uint8_t) ((temp2 & 0x0000FF00) >> 8);
+    ChipID[10] = (uint8_t) ((temp2 & 0x00FF0000) >> 16);
+    ChipID[11] = (uint8_t) ((temp2 & 0xFF000000) >> 24);
 }
 
 #pragma clang diagnostic pop

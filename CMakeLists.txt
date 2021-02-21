@@ -80,10 +80,10 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
 Building ${BIN_FILE}")
 
 install(FILES
-        ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex
-        DESTINATION "./")
+            ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex
+            DESTINATION HEX_FILE)
 install(FILES
-        ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin
-        DESTINATION "./")
+            ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin
+            DESTINATION BIN_FILE)
 
 include(cmake/vInstallCpack.cmake)

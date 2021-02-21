@@ -2,6 +2,7 @@
 // Created by caesar kekxv on 2020/9/15.
 //
 
+#include <xmodem/xmodem.h>
 #include "terminal_command.h"
 #include "stdlib.h"
 #include "string.h"
@@ -154,23 +155,8 @@ void TerminalCommand_Run(int argc, char **argv) {
         }
     }
     else if (0 == strcmp(command, "sz")) {
-        if (argc != 2) {
-            Terminal_Printf("sz : ");
-            Terminal_ForeColor(enmCFC_Red);
-            Terminal_Printf("bad param ");
-            Terminal_ResetColor();
-            Terminal_Printf("\n");
-        }
-        else {
-            int err = Terminal_CatFile(argv[1]);
-            if (0 != err) {
-                Terminal_Printf("sz : ");
-                Terminal_ForeColor(enmCFC_Red);
-                Terminal_Printf("sz : sz command error : ");
-                Terminal_PrintfNum(err);
-                Terminal_ResetColor();
-                Terminal_Printf("\n");
-            }
+        if (0 < XMODEM_xmodem(argc, (const char **) argv)) {
+            Terminal_Printf("sz : sz command error \n");
         }
     }
     else {

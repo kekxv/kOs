@@ -21,14 +21,24 @@ TerminalUserInfo terminalUserInfo = {};
 int8_t Terminal_offset = 0;
 char Terminal_command[TERMINAL_COMMAND_MAX_LENGTH] = {};
 
-Terminal_getc Terminal_getc_cb = NULL;
-Terminal_putc Terminal_putc_cb = NULL;
+Terminal_getc_timeout Terminal_getc_timeout_cb = NULL;
+Terminal_putc_timeout Terminal_putc_timeout_cb = NULL;
 
-void Terminal_init(Terminal_getc getc_cb, Terminal_putc putc_cb) {
-    Terminal_getc_cb = getc_cb;
-    Terminal_putc_cb = putc_cb;
-    if (Terminal_getc_cb == NULL ||
-        Terminal_putc_cb == NULL) {
+char Terminal_getc_cb() {
+    uint8_t ch;
+    Terminal_getc_timeout_cb(&ch, 0xffff);
+    return ch;
+}
+
+void Terminal_putc_cb(char ch) {
+    return Terminal_putc_timeout_cb(ch, 0xffff);
+}
+
+void Terminal_init(Terminal_getc_timeout getc_cb, Terminal_putc_timeout putc_cb) {
+    Terminal_getc_timeout_cb = getc_cb;
+    Terminal_putc_timeout_cb = putc_cb;
+    if (Terminal_getc_timeout_cb == NULL ||
+        Terminal_putc_timeout_cb == NULL) {
         return;
     }
 

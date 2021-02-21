@@ -117,12 +117,9 @@ typedef enum {
 /**
  * 读取一个字符
  */
-typedef char (*Terminal_getc)();
+typedef HAL_StatusTypeDef (*Terminal_getc_timeout)(uint8_t *ch, int timeout);
 
-/**
- * 发送一个字符
- */
-typedef void (*Terminal_putc)(char ch);
+typedef void (*Terminal_putc_timeout)(char ch, int timeout);
 
 typedef struct {
     char UserName[15];
@@ -134,7 +131,7 @@ typedef struct {
 /**
  * 初始化
  */
-void Terminal_init(Terminal_getc getc_cb, Terminal_putc putc_cb);
+void Terminal_init(Terminal_getc_timeout getc_cb, Terminal_putc_timeout putc_cb);
 
 void Terminal_Free();
 

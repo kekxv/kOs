@@ -47,6 +47,8 @@ void UtilClearRead();
  */
 void UtilPutc(char ch);
 
+void UtilPutcTimeout(char ch, int timeout);
+
 /**
  * 发送字符串到串口
  * @param ch
@@ -60,6 +62,8 @@ void UtilPutsLine(const char *str);
  * @return
  */
 char UtilGetc();
+
+HAL_StatusTypeDef UtilGetcTimeout(uint8_t *ch, int timeout);
 
 /**
  * 获取一个字符串
@@ -116,7 +120,7 @@ USBD_StatusTypeDef UtilUsbSendStr(char data[]);
 typedef enum {
     GPIO_PIN_LOW = 0, //低电平
     GPIO_PIN_HIGH //高电平
-}GPIO_PIN_STATE;
+} GPIO_PIN_STATE;
 
 int16_t UtilGpio(char GpioIndex, uint8_t pIndex, int8_t PinState);
 
